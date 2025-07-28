@@ -10,7 +10,21 @@ return {
 	config = function()
 		-- import lspconfig plugin
 		local lspconfig = require("lspconfig")
+		local util = require("lspconfig/util")
 
+		local configs = require("lspconfig.configs")
+		if not configs.protols then
+			configs.protols = {
+				default_config = {
+					cmd = { "protols" },
+					filetypes = { "proto" },
+					root_dir = function(fname)
+						return util.root_pattern(".git")(fname) or vim.fn.getcwd()
+					end,
+					single_file_support = true,
+				},
+			}
+		end
 		-- import mason_lspconfig plugin
 		local mason_lspconfig = require("mason-lspconfig")
 
@@ -247,6 +261,63 @@ return {
 					},
 				})
 			end,
+			["gopls"] = function()
+				-- configure gopls language server
+				lspconfig.gopls.setup({
+					capabilities = capabilities,
+					cmd = { "gopls" },
+					filetypes = { "go", "gomod", "gowork", "gotmpl" },
+					root_dir = util.root_pattern("go.work", "go.mod", ".git"),
+					settings = {
+						gopls = {
+							completeUnimported = true,
+							usePlaceholders = true,
+							analyses = {
+								unusedparams = true,
+							},
+							staticcheck = true,
+							gofumpt = true,
+							codelenses = {
+								gc_details = false,
+								generate = true,
+								regenerate_cgo = true,
+								run_govulncheck = true,
+								test = true,
+								tidy = true,
+								upgrade_dependency = true,
+								vendor = true,
+							},
+							hints = {
+								assignVariableTypes = true,
+								compositeLiteralFields = true,
+								compositeLiteralTypes = true,
+								constantValues = true,
+								functionTypeParameters = true,
+								parameterNames = true,
+								rangeVariableTypes = true,
+							},
+						},
+					},
+				})
+			end,
+		})
+
+		lspconfig.protols.setup({
+			capabilities = capabilities,
+			filetypes = { "proto" },
+			root_dir = util.root_pattern(".git", "proto", "buf.yaml", "buf.work.yaml"),
+			settings = {
+				protols = {
+					debug = false,
+					-- you can add more config from https://github.com/coder3101/protols#configuration
+				},
+			},
+		})
+
+		lspconfig.buf_ls.setup({
+			cmd = { "buf", "beta", "lsp" },
+			filetypes = { "proto" },
+			root_dir = util.root_pattern("buf.yaml", "buf.work.yaml", ".git"),
 		})
 	end,
 }

@@ -26,7 +26,7 @@ return {
 		mason_lspconfig.setup({
 			-- list of servers for mason to install
 			ensure_installed = {
-				"tsserver",
+				"ts_ls",
 				"html",
 				"cssls",
 				"tailwindcss",
@@ -36,6 +36,7 @@ return {
 				"emmet_ls",
 				"prismals",
 				"pyright",
+				"gopls",
 			},
 		})
 
@@ -46,7 +47,18 @@ return {
 				"isort", -- python formatter
 				"black", -- python formatter
 				"pylint", -- python linter
-				"eslint_d", -- js linter
+				{ "eslint_d", version = "13.1.2" }, -- js linter
+				-- Go tools
+				"gopls", -- Go language server
+				"delve", -- Go debugger
+				"gofumpt", -- Go formatter (stricter than gofmt)
+				"goimports", -- Go imports formatter
+				"golines", -- Go line length formatter
+				"golangci-lint", -- Go linter
+				"gotests", -- Go test generator
+				"impl", -- Go interface implementation generator
+				"gomodifytags", -- Go struct tag modifier
+				"protols",
 			},
 		})
 	end,
