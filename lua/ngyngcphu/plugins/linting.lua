@@ -3,6 +3,10 @@ return {
 	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		local lint = require("lint")
+		if vim.env.VIRTUAL_ENV then
+			local pylint = lint.linters.pylint
+			pylint.cmd = vim.env.VIRTUAL_ENV .. "/bin/pylint"
+		end
 
 		lint.linters_by_ft = {
 			javascript = { "eslint_d" },

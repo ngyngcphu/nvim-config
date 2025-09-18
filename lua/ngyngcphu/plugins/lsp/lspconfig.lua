@@ -76,10 +76,14 @@ return {
 				keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts) -- show diagnostics for line
 
 				opts.desc = "Go to previous diagnostic"
-				keymap.set("n", "[d", vim.diagnostic.goto_prev, opts) -- jump to previous diagnostic in buffer
+				keymap.set("n", "[d", function()
+					vim.diagnostic.jump({ count = -1 })
+				end, opts)
 
 				opts.desc = "Go to next diagnostic"
-				keymap.set("n", "]d", vim.diagnostic.goto_next, opts) -- jump to next diagnostic in buffer
+				keymap.set("n", "]d", function()
+					vim.diagnostic.jump({ count = 1 })
+				end, opts)
 
 				opts.desc = "Show documentation for what is under cursor"
 				keymap.set("n", "K", vim.lsp.buf.hover, opts) -- show documentation for what is under cursor
@@ -116,7 +120,7 @@ return {
 				-- configure svelte server
 				lspconfig["svelte"].setup({
 					capabilities = capabilities,
-					on_attach = function(client, bufnr)
+					on_attach = function(client, _)
 						vim.api.nvim_create_autocmd("BufWritePost", {
 							pattern = { "*.js", "*.ts" },
 							callback = function(ctx)
@@ -167,8 +171,8 @@ return {
 					},
 				})
 			end,
-			["tsserver"] = function()
-				lspconfig.tsserver.setup({
+			["ts_ls"] = function()
+				lspconfig.ts_ls.setup({
 					capabilities = capabilities,
 					init_options = {
 						plugins = {
@@ -214,7 +218,7 @@ return {
 						clangdFileStatus = true,
 					},
 					root_dir = function(fname)
-						return require("lspconfig.util").root_pattern(
+						return util.root_pattern(
 							"Makefile",
 							"configure.ac",
 							"configure.in",
@@ -222,10 +226,9 @@ return {
 							"meson.build",
 							"meson_options.txt",
 							"build.ninja"
-						)(fname) or require("lspconfig.util").root_pattern(
-							"compile_commands.json",
-							"compile_flags.txt"
-						)(fname) or require("lspconfig.util").find_git_ancestor(fname)
+						)(fname) or util.root_pattern("compile_commands.json", "compile_flags.txt")(fname) or vim.fs.dirname(
+							vim.fs.find(".git", { path = fname, upward = true })[1]
+						)
 					end,
 					settings = {
 						clangd = {
@@ -238,7 +241,7 @@ return {
 				-- configure rust-analyzer for Rust language server
 				lspconfig.rust_analyzer.setup({
 					capabilities = capabilities,
-					on_attach = function(client, bufnr)
+					on_attach = function(_, bufnr)
 						vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 					end,
 					settings = {
@@ -318,6 +321,32 @@ return {
 			cmd = { "buf", "beta", "lsp" },
 			filetypes = { "proto" },
 			root_dir = util.root_pattern("buf.yaml", "buf.work.yaml", ".git"),
+		})
+
+		lspconfig.dartls.setup({
+			capabilities = capabilities,
+			cmd = { "dart", "language-server", "--protocol=lsp" },
+			filetypes = { "dart" },
+			init_options = {
+				onlyAnalyzeProjectsWithOpenFiles = false,
+				suggestFromUnimportedLibraries = true,
+				closingLabels = true,
+				outline = true,
+				flutterOutline = true,
+			},
+			settings = {
+				dart = {
+					analysisExcludedFolders = {
+						vim.fn.expand("$HOME/AppData/Local/Pub/Cache"),
+						vim.fn.expand("$HOME/.pub-cache"),
+						vim.fn.expand("/opt/homebrew"),
+						vim.fn.expand("$HOME/tools/flutter"),
+					},
+					updateImportsOnRename = true,
+					completeFunctionCalls = true,
+					showTodos = true,
+				},
+			},
 		})
 	end,
 }

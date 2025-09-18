@@ -44,6 +44,9 @@ return {
 				"c",
 				"cpp",
 				"rust",
+				"go",
+				"swift",
+				"dart",
 			},
 			incremental_selection = {
 				enable = true,
